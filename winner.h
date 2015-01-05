@@ -1,7 +1,7 @@
 // -1 = lose, 0 = draw, 1 = win
 int didIWin(int myPick, int otherPick, int numChoices)
 {
-  int result = ((myPick - otherPick) % numChoices + numChoices) % numChoices;
+  int result = ((myPick - otherPick + numChoices) % numChoices; // Make sure this doesn't mess up with overflows
   
   int partition = numChoices / 2;
   if(result == partition && numChoices % 2 == 0)

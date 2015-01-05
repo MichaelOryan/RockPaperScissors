@@ -1,70 +1,109 @@
 #include <iostream>
 #include <string>
 #include <random>
-#include <unordered_map>
+
+void updateWins(const Player p1, unsigned int &p1Score, const Player p2, unsigned int &p2Score, Player winner);
+void playRound(unsigned int &playerWins, unsigned int &computerWins);
+void printSummary(unsigned int playerWins, unsigned int computerWins);
+void print(Text text);
+Choice getComputerChoice();
+Choice convertToChoice(int n);
+Choice getPlayerChoice();
+
+const unsigned int NUMBER_OF_CHOICES = 3;
+enum Choice = {ROCK = 1, PAPER = 2, SCISSORS = 3};
+enum Player = {HUMAN, COMPUTER};
+enum Text = {GREETINGS, CHOICES, UNKNOWNCHOICE};
 
 int main()
 {
-    bool playing = true;
-    std::string userMoveStr, playAgain;
-    int playerWins = 0, compWins = 0, compMove, userMove, result;
-    typedef std::unordered_map<int, std::string> moveMap;
-    moveMap moves = { {1, "Rock"}, {2, "Paper"}, {3, "Scissors"} };
+    unsigned int playerWins = 0, computerWins = 0;
 
-    // Initialize random number generator
-    std::random_device rd; // obtain a random number from hardware
-    std::mt19937 eng(rd()); // seed the generator
-    std::uniform_int_distribution<> distr(1, 3); // define the range
+    print(GREETINGS);
 
-    std::cout << "Welcome!" << std::endl;
-
-    while(playing)
-    {
-        std::cout << "Enter 1 to play Rock, 2 to play Paper, and 3 to play Scissors!: ";
-        getline(std::cin, userMoveStr);
-
-        while(!(userMoveStr == "1" || userMoveStr == "2" || userMoveStr == "3"))
-        {
-            std::cout << "Unknown command! Please try that again..." << std::endl;
-            std::cout << "Enter 1 to play Rock, 2 to play Paper, and 3 to play Scissors!: ";
-            getline(std::cin, userMoveStr);
-        }
-
-        // Convert the user move from a string to an integer
-        userMove = std::stoi(userMoveStr);
-
-        // Create random integer in range [1,3] to simulate the computer selecting a move
-        compMove = distr(eng);
-
-        result = userMove - compMove;
-
-        if(result == 0)
-            std::cout << "Tie game!" << std::endl;
-        else if(result == 1 || result == -2)
-        {    
-            std::cout << "Congratulations, you won!" << std::endl;
-            playerWins++;
-        } else
-        {
-            std::cout << "Sorry, you lost!" << std::endl;
-            compWins++;
-        }
-
-        std::cout << "Your move: " << moves[userMove] << " // Computer's move: " << moves[compMove] << std::endl;
-        std::cout << "(Player: " << playerWins << " | Computer: " << compWins << ")" << std::endl;
-        std::cout << "Play again? [y/n]: ";
-        getline(std::cin, playAgain);
-        
-        while(!(playAgain == "y" || playAgain == "n"))
-        {
-            std::cout << "Unknown command! Please try that again..." << std::endl;
-            std::cout << "Play again? [y/n]: ";
-            getline(std::cin, playAgain);      
-        }
-
-        if(playAgain == "n")
-            playing = false;
-    }
-
+    do{
+        playRound(playerWins, computerWins);
+    } while(playAgain());
+    
+    printSummary(playerWins, computerWins);
+    
     return 0;
+}
+
+void playRound(unsigned int &playerWins, unsigned int &computerWins)
+{
+    Player winner = calcWinner(HUMAN, getPlayerChoice(), COMPUTER, getComputerChoice());
+    printResult(winner);
+    updateWins(HUMAN, playerWins, COMPUTER, computerWins, winner);
+}
+
+void updateWins(const Player p1, unsigned int &p1Score, const Player p2, unsigned int &p2Score, Player winner)
+{
+    if(p1 == winner)
+        ++p1Score;
+    if(p2 == winner)
+        ++p2Score;
+}
+
+void printSummary(unsigned int playerWins, unsigned int computerWins)
+{
+    std::cout << "You scored: " << playerWins "\nComputer Scored: " << computerWins << std::endl;
+    if(playerWins > computerWins)
+        std::cout << "You Won!"<< std::endl;
+    else if (computerWins > playerWins)
+        std::cout << "Computer Won!"<< std::endl;
+    else
+        std::cout << "It was a draw!"<< std::endl;
+}
+
+Choice getPlayerChoice()
+{
+    string playerMove;
+    print(CHOICES);
+    getline(std::cin, playerMove);
+
+    while(!(playerMove == std::itoa(ROCK) || playerMove == std::itoa(PAPER) || playerMove == std::itoa(SCISSORS)))
+    {
+        print(UNKNOWNCHOICE);
+        print(CHOICES);
+        getline(std::cin, playerMove);
+    }
+    
+    return convertToChoice(std::stoi(playerMove))
+}
+
+void print(Text text)
+{
+    string output;
+    switch(text)
+    {
+        case GREETINGS: output = "Welcome to Rock, Paper, Scissors!"; break;
+        case CHOICES: output = "Enter " << std::itoa(ROCK) << " to play Rock, " << std::itoa(PAPER) << " to play Paper, and " << std::itoa(SCISSORS) << " to play Scissors!:"; break;
+        case UNKNOWNCHOICE: output = "Unknown command! Please try that again..."; break;
+        default
+    }
+}
+
+Choice convertToChoice(int n)
+{
+    Choice playerChoice;
+    
+    switch(n)
+    {
+        case ROCK: playerChoice == ROCK; break;
+        case SCISSORS: playerChoice == SCISSORS; break;
+        case PAPER: playerChoice == PAPER; break;
+        default: playerChoice == ROCK; break;
+    }
+    
+    return playerChoice;
+}
+
+Choice getComputerChoice()
+{
+    std::random_device rd;
+    std::mt19937 eng(rd());
+    std::uniform_int_distribution<> distr(1, NUMBER_OF_CHOICES);
+    
+    return convertToChoice(distr(eng));
 }
